@@ -1,6 +1,7 @@
 {
   "name":"打印服务",
   "main":"index.html",
+  "version": "0.1",
   "window":{
     "title":"Web打印服务",
     "width":250,

@@ -26,9 +26,17 @@
         app.use(multer());
 
         app.get('/', function (req, res) {
+            res.header('Access-Control-Allow-Origin', '*');
+            res.header('Access-Control-Allow-Headers', 'Content-Type, Content-Length, Authorization, Accept, X-Requested-With , yourHeaderFeild');
+            res.header('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, OPTIONS');
+
             res.send('print server running');
         });
         app.get("/printer",function (req, res) {
+            res.header('Access-Control-Allow-Origin', '*');
+            res.header('Access-Control-Allow-Headers', 'Content-Type, Content-Length, Authorization, Accept, X-Requested-With , yourHeaderFeild');
+            res.header('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, OPTIONS');
+
             nw.Window.get().getPrinters(function (data) {
                 var d=[];
                 for(var i=0;i<data.length;i++){
@@ -40,35 +48,45 @@
         });
         app.post("/print",function (req, res) {
 //            var url= req.param("url");
+            res.header('Access-Control-Allow-Origin', '*');
+            res.header('Access-Control-Allow-Headers', 'Content-Type, Content-Length, Authorization, Accept, X-Requested-With , yourHeaderFeild');
+            res.header('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, OPTIONS');
+
             var result={
               success:false,message:""
             };
             console.log(req.body);
             if(req.body.url){
-                nw.Window.get().getPrinters(function (data) {
-//                    var d=[];
-                    if(req.body.printer&&req.body.printer!=""){
-                        for(var i=0;i<data.length;i++){
-//                        d.push(data[i].printerName);
-                            if(data[i].printerName==req.body.printer){
-                                openPrint(req.body.url,req.body);
-                                result.success=true;
-                                result.message="已发送打印";
-                                res.send(result)
-                                return;
-                            }
-                        }
-                        result.success=false;
-                        result.message="打印机不存在";
-                        res.send(result)
-                    }else{
-                        result.success=true;
-                        result.message="已发送打印";
-                        openPrint(req.body.url,req.body);
-                    }
-
-
-                })
+                result.success=true;
+                result.message="已发送打印";
+                res.send(result)
+                openPrint(req.body.url,req.body);
+//
+//                nw.Window.get().getPrinters(function (data) {
+////                    var d=[];
+//                    if(req.body.printer&&req.body.printer!=""){
+//                        for(var i=0;i<data.length;i++){
+////                        d.push(data[i].printerName);
+//                            if(data[i].printerName==req.body.printer){
+//                                result.success=true;
+//                                result.message="已发送打印";
+//                                res.send(result)
+//                                openPrint(req.body.url,req.body);
+//
+//                                return;
+//                            }
+//                        }
+//                        result.success=false;
+//                        result.message="打印机不存在";
+//
+//                        res.send(result)
+//                    }else{
+//
+//
+//                    }
+//
+//
+//                })
 
             }else{
                 result.success=false;
@@ -78,6 +96,9 @@
 
         });
         app.get("/help",function (req, res) {
+            res.header('Access-Control-Allow-Origin', '*');
+            res.header('Access-Control-Allow-Headers', 'Content-Type, Content-Length, Authorization, Accept, X-Requested-With , yourHeaderFeild');
+            res.header('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, OPTIONS');
 
         });
 
@@ -92,24 +113,27 @@
 
     }
     function openPrint(url,opt) {
-
-        nw.Window.open(url,{show:true},function (win) {
+//        if(opt.autoprint==f)
+        nw.Window.open(url,{show:true,new_instance:false,id:"print_win"},function (win) {
 //            nw.Window.get(win);
-            win.on('close', function() {
-                win.close(true)
-                console.log("We're closing...");
+            if(win){
+                win.on('close', function() {
+                    console.log("We're closing...");
+                    win.close(true);
+                });
+                if(!opt.headerString){
+                    opt.headerString="";
+                }
+                if(!opt.footerString){
+                    opt.footerString="";
+                }
+                opt.autoprint=true;
+                win.print(opt);
+                setTimeout(function () {
+                    win.close(true)
+                },1000)
+            }
 
-            });
-            if(!opt.headerString){
-                opt.headerString="";
-            }
-            if(!opt.footerString){
-                opt.footerString="";
-            }
-            win.print(opt);
-            setTimeout(function () {
-                win.close(true)
-            },1000)
         })
     }
 //    require("net");
