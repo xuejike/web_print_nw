@@ -45,7 +45,31 @@
             };
             console.log(req.body);
             if(req.body.url){
-                openPrint(req.body.url,req.body);
+                nw.Window.get().getPrinters(function (data) {
+//                    var d=[];
+                    if(req.body.printer&&req.body.printer!=""){
+                        for(var i=0;i<data.length;i++){
+//                        d.push(data[i].printerName);
+                            if(data[i].printerName==req.body.printer){
+                                openPrint(req.body.url,req.body);
+                                result.success=true;
+                                result.message="已发送打印";
+                                res.send(result)
+                                return;
+                            }
+                        }
+                        result.success=false;
+                        result.message="打印机不存在";
+                        res.send(result)
+                    }else{
+                        result.success=true;
+                        result.message="已发送打印";
+                        openPrint(req.body.url,req.body);
+                    }
+
+
+                })
+
             }else{
                 result.success=false;
                 result.message="打印路径不存在";
