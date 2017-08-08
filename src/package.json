@@ -1,0 +1,12 @@
+{
+  "name":"print_server",
+  "main":"index.html",
+  "version": "0.0.1",
+  "window":{
+    "title":"Web打印服务",
+    "width":250,
+    "height":90,
+    "resizable":false
+  }
+
+}
