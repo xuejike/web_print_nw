@@ -48,6 +48,7 @@
         });
         app.post("/print",function (req, res) {
 //            var url= req.param("url");
+            updatePrinter();
             res.header('Access-Control-Allow-Origin', '*');
             res.header('Access-Control-Allow-Headers', 'Content-Type, Content-Length, Authorization, Accept, X-Requested-With , yourHeaderFeild');
             res.header('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, OPTIONS');
@@ -57,36 +58,8 @@
             };
             console.log(req.body);
             if(req.body.url){
-                result.success=true;
-                result.message="已发送打印";
-                res.send(result)
-                openPrint(req.body.url,req.body);
-//
-//                nw.Window.get().getPrinters(function (data) {
-////                    var d=[];
-//                    if(req.body.printer&&req.body.printer!=""){
-//                        for(var i=0;i<data.length;i++){
-////                        d.push(data[i].printerName);
-//                            if(data[i].printerName==req.body.printer){
-//                                result.success=true;
-//                                result.message="已发送打印";
-//                                res.send(result)
-//                                openPrint(req.body.url,req.body);
-//
-//                                return;
-//                            }
-//                        }
-//                        result.success=false;
-//                        result.message="打印机不存在";
-//
-//                        res.send(result)
-//                    }else{
-//
-//
-//                    }
-//
-//
-//                })
+                openPrint(req.body.url,req.body,res);
+
 
             }else{
                 result.success=false;
@@ -109,32 +82,61 @@
             console.log('Example app listening at http://%s:%s', host, port);
         });
     }
-    function getPrinter(callback) {
-
+    var printerList={};
+    updatePrinter();
+    function updatePrinter() {
+        nw.Window.get().getPrinters(function (data) {
+            printerList={};
+            for(var i=0;i<data.length;i++){
+                printerList[data[i].printerName]=data[i];
+            }
+//            res.send(d)
+        })
     }
-    function openPrint(url,opt) {
+    function openPrint(url,opt,res) {
 //        if(opt.autoprint==f)
-        nw.Window.open(url,{show:true,new_instance:false,id:"print_win"},function (win) {
+       var cc= nw.Window.open(url,{show:true,
+           new_instance:false,inject_js_start:"console.log(window)"},function (win) {
 //            nw.Window.get(win);
             if(win){
-                win.on('close', function() {
-                    console.log("We're closing...");
-                    win.close(true);
-                });
-                if(!opt.headerString){
-                    opt.headerString="";
+                try{
+                    win.on('close', function() {
+                        console.log("We're closing...");
+                        win.close(true);
+                    });
+                    if(!opt.headerString){
+                        opt.headerString="";
+                    }
+                    if(!opt.footerString){
+                        opt.footerString="";
+                    }
+                    opt.autoprint=true;
+                    opt.shouldPrintBackgrounds =true;
+
+                    if(opt.printer){
+                        var dev= printerList[opt.printer];
+                        if(!dev){
+                            res.send({success:false,message:"打印机不存在"});
+                            return;
+                        }
+                    }
+                    win.print(opt);
+                    setTimeout(function () {
+                        console.log("print_win close");
+                        win.close(true)
+                    },1000)
+                    res.send({success:true,message:"已发送打印"});
+
+                }catch(ex){
+                    res.send({success:false,message:ex.message})
                 }
-                if(!opt.footerString){
-                    opt.footerString="";
-                }
-                opt.autoprint=true;
-                win.print(opt);
-                setTimeout(function () {
-                    win.close(true)
-                },1000)
+
+            }else{
+                res.send({success:false,message:"页面无法访问"})
             }
 
-        })
+        });
+        console.log(cc);
     }
 //    require("net");
 </script>

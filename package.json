@@ -8,4 +8,5 @@
     "height":90,
     "resizable":false
   }
+//, "chromium-args":"--disable-print-preview"
 }
