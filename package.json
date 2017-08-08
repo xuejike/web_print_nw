@@ -1,0 +1,10 @@
+{
+  "name":"打印服务",
+  "main":"index.html",
+  "window":{
+    "title":"Web打印服务",
+    "width":250,
+    "height":90,
+    "resizable":false
+  }
+}

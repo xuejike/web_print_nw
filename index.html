@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WEB打印服务</title>
+</head>
+<body>
+<h1>服务运行中</h1>
+<script>
+
+
+    server();
+    function server() {
+        var express = require('express');
+        var app = express();
+
+        var bodyParser		= require("body-parser");
+        var multer			= require("multer");
+        //for parsing application/json
+        app.use(bodyParser.json());
+
+//for parsing application/x-www-form-urlencoded
+        app.use(bodyParser.urlencoded({ extended: true }));
+
+//for parsing multipart/form-data //需要用npm install multer@0.1.8
+        app.use(multer());
+
+        app.get('/', function (req, res) {
+            res.send('print server running');
+        });
+        app.get("/printer",function (req, res) {
+            nw.Window.get().getPrinters(function (data) {
+                var d=[];
+                for(var i=0;i<data.length;i++){
+                    d.push(data[i].printerName);
+                }
+                res.send(d)
+
+            })
+        });
+        app.post("/print",function (req, res) {
+//            var url= req.param("url");
+            var result={
+              success:false,message:""
+            };
+            console.log(req.body);
+            if(req.body.url){
+                openPrint(req.body.url,req.body);
+            }else{
+                result.success=false;
+                result.message="打印路径不存在";
+                res.send(result)
+            }
+
+        });
+        app.get("/help",function (req, res) {
+
+        });
+
+        var server = app.listen(9999, function () {
+            var host = server.address().address;
+            var port = server.address().port;
+
+            console.log('Example app listening at http://%s:%s', host, port);
+        });
+    }
+    function getPrinter(callback) {
+
+    }
+    function openPrint(url,opt) {
+
+        nw.Window.open(url,{show:true},function (win) {
+//            nw.Window.get(win);
+            win.on('close', function() {
+                win.close(true)
+                console.log("We're closing...");
+
+            });
+            if(!opt.headerString){
+                opt.headerString="";
+            }
+            if(!opt.footerString){
+                opt.footerString="";
+            }
+            win.print(opt);
+            setTimeout(function () {
+                win.close(true)
+            },1000)
+        })
+    }
+//    require("net");
+</script>
+</body>
+</html>
