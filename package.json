@@ -7,19 +7,6 @@
     "width":250,
     "height":90,
     "resizable":false
-  },
-  "dependencies":{
-      "express":"4.15.4",
-      "body-parser":"1.17.2",
-      "multer":"0.1.8"
-  },
-  "devDependencies":{
-    "nw":"^0.24.1",
-    "nw-builder":"^3.4.1"
-  },
-  "scripts":{
-    "dev":"nw src/",
-    "prod":"nwbuild --platforms win32 --buildDir dist/ src/"
   }
 
 }

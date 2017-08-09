@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>打印测试</title>
+    <script src="http://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+    <script src="printsdk.js"></script>
+</head>
+<body>
+        <button onclick="printBd()">打印百度首页</button>
+        <button onclick="checkPrintServer(function(ms) {
+          alert('服务已开启')
+        },function() {
+          alert('服务未开启')
+        })">检测打印服务是否开启</button>
+        <button onclick="openPrintServer()">打开打印服务</button>
+        <button onclick="printcustom()">打印自定义纸张大小</button>
+        <button onclick="getPriner(function(data) {
+          alert(JSON.stringify(data))
+        })">获取打印机</button>
+<script>
+    function printBd() {
+        printUrl("http://www.baidu.com",{},function () {
+            alert("打印成功")
+        },function (err) {
+            alert(err);
+        })
+    }
+    function printcustom() {
+        var p= printCreatePage(100,300);
+        printUrl("http://www.baidu.com",{printer:"Lenovo M1851",mediaSize:p},function () {
+            alert("打印成功")
+        },function (err) {
+            alert(err);
+        })
+    }
+
+</script>
+</body>
+</html>

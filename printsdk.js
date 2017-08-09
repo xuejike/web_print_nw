@@ -2,43 +2,53 @@
  * Created by xuejike on 2017/8/8.
  * 参数说明
  *
- autoprint {Boolean} whether to print without the need for user’s interaction; optional, true by default
- printer {String} the device name of the printer returned by nw.Window.getPrinters(); No need to set this when printing to PDF
- pdf_path {String} the path of the output PDF when printing to PDF
- headerFooterEnabled {Boolean} whether to enable header and footer
- landscape {Boolean} whether to use landscape or portrait
- mediaSize {JSON Object} the paper size spec
- shouldPrintBackgrounds {Boolean} whether to print CSS backgrounds
- marginsType {Integer} 0 - Default; 1 - No margins; 2 - minimum; 3 - Custom, see marginsCustom.
- marginsCustom {JSON Object} the custom margin setting; units are points.
- copies {Integer} the number of copies to print.
- headerString {String} string to replace the URL in the header.
- footerString {String} string to replace the URL in the footer.
- marginsCustom example: "marginsCustom":{"marginBottom":54,"marginLeft":70,"marginRight":28,"marginTop":32}
- mediaSize example: 'mediaSize':{'name': 'CUSTOM', 'width_microns': 279400, 'height_microns': 215900, 'custom_display_name':'Letter', 'is_default': true}
-
+    url  需要打印地址
+    opt => { printer:"打印机名称",marginsType:0-正常、1-无边距，2-小边距,3-自定义边距,mediaSize:纸张尺寸,
+    marginsCustom:{"marginBottom":54,"marginLeft":70,"marginRight":28,"marginTop":32}}
  */
 function printUrl(url,opt,succFun,errFun){
     var def={
         "url":url,
         "autoprint":true,
-        "footerString":"",
-        "headerString":"",
         "marginsType":1,
         "shouldPrintBackgrounds":true
     };
     $.extend(def,opt);
-    $.post("http://127.0.0.1:9999/print",JSON.stringify(def),function (res) {
-        if(res.success){
+
+    $.ajax({
+        url: "http://127.0.0.1:9999/print",
+        type: "POST",
+        data: def,
+        success:function(res) {
+            if(res.success){
+                if(succFun){
+                    succFun(res.message);
+                }
+            }else{
+                if(errFun){
+                    errFun(res.message);
+                }
+            }
+        },
+        error:function() {
+            errFun("服务未启动");
+        }
+    });
+
+}
+function checkPrintServer(succFun,errFun) {
+    $.ajax({
+        url: "http://127.0.0.1:9999/",
+        type: "GET",
+        success:function(res) {
             if(succFun){
                 succFun(res.message);
             }
-        }else{
-            if(errFun){
-                errFun(res.message);
-            }
+        },
+        error:function() {
+            errFun("服务未启动");
         }
-    })
+    });
 }
 /**
  * 创建纸张大小 单位毫米
@@ -49,6 +59,27 @@ function printCreatePage(width, height) {
 
     var paper={"name": "custom_paper",
         "width_microns": width*1000, "height_microns": height*1000,
-        "custom_display_name":"custom_paper", "is_default": true}
+        "custom_display_name":"custom_paper"}
         return paper;
+}
+/**
+ * 开启打印服务
+ */
+function openPrintServer() {
+    window.open("webprint://open");
+}
+
+function getPriner(succFun) {
+    $.ajax({
+        url: "http://127.0.0.1:9999/printer",
+        type: "GET",
+        success:function(res) {
+            if(succFun){
+                succFun(res);
+            }
+        },
+        error:function() {
+            errFun("服务未启动");
+        }
+    });
 }

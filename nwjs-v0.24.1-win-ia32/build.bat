@@ -1,0 +1,1 @@
+copy /b nw.exe+webPrint.nw app.exe

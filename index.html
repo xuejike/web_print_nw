@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WEB打印服务</title>
+</head>
+<body>
+<h1 id="info">服务运行中</h1>
+<script>
+
+
+    try {
+        init();
+        server();
+    }catch (ex){
+        console.log(ex.message);
+        document.getElementById("info").innerHTML="服务启动失败";
+    }
+
+    function init() {
+//        App.args[0];
+        if(nw.App.argv[0]){
+            var arg=nw.App.argv[0];
+//            alert(nw.App.argv[0]);
+            console.log("启动参数:"+nw.App.argv[0]);
+//            opt= decodeURI(nw.App.argv[0]);
+//            var opt=JSON.parse(nw.App.argv[0]);
+            if(arg=="webprint://open"){
+
+            }else{
+                openPrint("http"+nw.App.argv[0].substring(8),{},{send:function (d) {
+                    console.log(d);
+                }});
+            }
+
+        }
+    }
+    function server() {
+//        q=v.s.s;
+        var express = require('express');
+        var app = express();
+
+        var bodyParser		= require("body-parser");
+        var multer			= require("multer");
+        //for parsing application/json
+        app.use(bodyParser.json());
+
+//for parsing application/x-www-form-urlencoded
+        app.use(bodyParser.urlencoded({ extended: true }));
+
+//for parsing multipart/form-data //需要用npm install multer@0.1.8
+        app.use(multer());
+
+        app.get('/', function (req, res) {
+            res.header('Access-Control-Allow-Origin', '*');
+            res.header('Access-Control-Allow-Headers', 'Content-Type, Content-Length, Authorization, Accept, X-Requested-With , yourHeaderFeild');
+            res.header('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, OPTIONS');
+
+            res.send('print server running');
+        });
+        app.get("/printer",function (req, res) {
+            res.header('Access-Control-Allow-Origin', '*');
+            res.header('Access-Control-Allow-Headers', 'Content-Type, Content-Length, Authorization, Accept, X-Requested-With , yourHeaderFeild');
+            res.header('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, OPTIONS');
+
+            nw.Window.get().getPrinters(function (data) {
+                var d=[];
+                for(var i=0;i<data.length;i++){
+                    d.push(data[i].printerName);
+                }
+                res.send(d)
+
+            })
+        });
+        app.post("/print",function (req, res) {
+//            var url= req.param("url");
+            updatePrinter();
+            res.header('Access-Control-Allow-Origin', '*');
+            res.header('Access-Control-Allow-Headers', 'Content-Type, Content-Length, Authorization, Accept, X-Requested-With , yourHeaderFeild');
+            res.header('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, OPTIONS');
+
+            var result={
+              success:false,message:""
+            };
+            console.log(req.body);
+            if(req.body.url){
+                openPrint(req.body.url,req.body,res);
+
+
+            }else{
+                result.success=false;
+                result.message="打印路径不存在";
+                res.send(result)
+            }
+
+        });
+        app.get("/help",function (req, res) {
+            res.header('Access-Control-Allow-Origin', '*');
+            res.header('Access-Control-Allow-Headers', 'Content-Type, Content-Length, Authorization, Accept, X-Requested-With , yourHeaderFeild');
+            res.header('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, OPTIONS');
+
+        });
+
+        var server = app.listen(9999, function () {
+            var host = server.address().address;
+            var port = server.address().port;
+
+            console.log('Example app listening at http://%s:%s', host, port);
+        });
+    }
+    var printerList={};
+    updatePrinter();
+    function updatePrinter() {
+        nw.Window.get().getPrinters(function (data) {
+            printerList={};
+            for(var i=0;i<data.length;i++){
+                printerList[data[i].printerName]=data[i];
+            }
+//            res.send(d)
+        })
+    }
+    function openPrint(url,opt,res) {
+//        if(opt.autoprint==f)
+       var cc= nw.Window.open(url,{show:false,
+           new_instance:false,inject_js_start:"console.log(window)"},function (win) {
+//            nw.Window.get(win);
+            if(win){
+                setTimeout(function () {
+                    console.log("print_win close");
+                    win.close(true)
+                },3000);
+                try{
+                    win.on('close', function() {
+                        console.log("We're closing...");
+                        win.close(true);
+                    });
+//                    if(!opt.headerString){
+                        opt.headerString="";
+//                    }
+//                    if(!opt.footerString){
+                        opt.footerString="";
+//                    }
+                    opt.autoprint=true;
+                    opt.headerFooterEnabled=false;
+                    opt.shouldPrintBackgrounds =true;
+
+                    if(opt.printer){
+                        var dev= printerList[opt.printer];
+                        if(!dev){
+                            res.send({success:false,message:"打印机不存在"});
+                            return;
+                        }
+                    }
+                    win.print(opt);
+
+                    res.send({success:true,message:"已发送打印"});
+
+                }catch(ex){
+                    res.send({success:false,message:ex.message})
+                }
+
+            }else{
+                res.send({success:false,message:"页面无法访问"})
+            }
+
+        });
+        console.log(cc);
+    }
+//    require("net");
+</script>
+</body>
+</html>
